@@ -4,8 +4,6 @@ A [sveltekit](https://github.com/sveltejs/kit/tree/master/packages/create-svelte
 
 Note: there is currently no web interface associated with this script. Once there is accurate and up-to-date information, the script will expose a JSON file similar to the source document, with the formatted and additional information included, and the remaining geoJSON data (zip code boundaries) unmodified.
 
-```
-
 ## Local use
 
 1. Download this source code
