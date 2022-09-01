@@ -1,38 +1,28 @@
-# create-svelte
+# sasea-pipes
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+A [sveltekit](https://github.com/sveltejs/kit/tree/master/packages/create-svelte) app to partially transform some San Diego County [ArcGIS REST API](https://developers.arcgis.com/rest/) data, and publish the resulting data for use as a layer in an ArcGIS Online embedded interactive map iframe.
 
-## Creating a project
+Note: there is currently no web interface associated with this script. Once there is accurate and up-to-date information, the script will expose a JSON file similar to the source document, with the formatted and additional information included, and the remaining geoJSON data (zip code boundaries) unmodified.
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
 ```
 
-## Developing
+## Local use
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+1. Download this source code
+2. `cd` into the root directory
+3. Run `npm install`, then `npm run dev -- --open`
+4. The `/static/` directory will populate with the latest data
 
-```bash
-npm run dev
+## How it works
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+### `/src/routes/+page.js`
 
-## Building
+Queries the San Diego County ArcGIS REST API endpoint, providing it as `data`.
 
-To create a production version of your app:
+### `/src/routes/+page.svelte`
 
-```bash
-npm run build
-```
+Takes the `data` and transforms it.
 
-You can preview the production build with `npm run preview`.
+### `/src/lib/transform.ts`
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+Contains the types and functions that format attributes and collect date range info on ZIP Codes, storing them as JSON files inside the `/static/` directory.
