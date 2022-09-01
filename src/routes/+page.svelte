@@ -2,37 +2,13 @@
 	//import * as wkx from 'wkx'
 	//import fs from 'fs'
 	//import { arcgisToGeoJSON } from '@esri/arcgis-to-geojson-utils'
-	import { formatAttributes, processFeatures } from '$lib/transform'
+	import { formatAttributes, processFeatures, processSum } from '$lib/transform'
 
 	/** @type {import('./$types').PageData} */
 	export let data;
-	//console.log({data: data});
-	/**
-	let student = { 
-	    name: 'Mike',
-	};
-	let jsondata = JSON.stringify(student, null, 2);
-	fs.writeFile('jsondata.json', jsondata, (err) => {
-	    if (err) throw err;
-	    console.log('Data written to file');
-	});
-	console.log('This is after the write call');
-	*/
-	/**
-	let geojson = {};
-	let geometry = {};
-	try {
-		geojson = arcgisToGeoJSON(data);
-	} catch (e) {
-		console.log("a2g: " + e);
-	}
-	try {
-		geometry = wkx.Geometry.parseGeoJSON(geojson);
-	} catch (e) {
-		console.log("wkx: " + e);
-	}
-	console.log({geojson, geometry});
-	*/
+
+	let processed = [];
+	let run = false;
 	/**
 	// Example data
 	{
@@ -52,19 +28,6 @@
 						[
 							[-116.74540347417111,32.96063610403227],
 							[-116.7408578479165,32.95853714588754],
-							[-116.73885306062894,32.949957962160184],
-							[-116.73881568442492,32.949797999655296],
-							[-116.73881691871013,32.94972687906707],
-							[-116.73882950949714,32.94906067718726],
-							[-116.73887587604052,32.94905987888626],
-							[-116.74015285367477,32.94903791844556],
-							[-116.74029442277366,32.94899647386563],
-							[-116.74022041417068,32.948292824416626],
-							[-116.73968386392622,32.94764975529145],
-							[-116.7395558297437,32.94631658397095],
-							[-116.73954146029243,32.94607752466526],
-							[-116.73952220131103,32.94583848959032],
-							[-116.73949805459623,32.94559981496553],
 							[-116.73946902284284,32.94536184681413]
 							...
 						],
@@ -72,27 +35,30 @@
 					]
 				}
 			},
-			{
-				attributes: {
-					zip_code: "91910",
-					f7_day_average_case_rate: 48.90617172,
-					testing_positivity_percentage: 0.1287478,
-					previous_week_case_rate: 74.46688865,
-					current_date_range: "2/6/2022-2/12/2022",
-					previous_week_date_range: "1/30/2022-2/5/2022"
-				}
-			},
-			...
+			...(~2000 more total "features" objects)
 		]
-
 	*/
 	/**
 	console.log({
 		before: data.features[0].attributes,
 		after: formatAttributes(data.features[0].attributes),
 	}); */
-	processFeatures(data.features, 0);
 
+	let result = processFeatures(data.features, 0);
+	processed = result.processed;
+	let promise = processSum();
+	run = true;
+	//const sum = processSum();
+	$: status = (run) ? "completed:" : "requested...";
+	$: processStatus = (run && result.processed) ? result.processed.length.toString() : "";
+	//$: sumStatus = (typeof sumZips.total !== "undefined" && sumZips.total > 0) ? sumZips.total : "";
+
+	function debugData() {
+		console.log({
+			inputData: data,
+			outputData: result
+		});
+	}
 </script>
 
 <svelte:head>
@@ -102,19 +68,35 @@
 
 <section>
 	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset="svelte-welcome.webp" type="image/webp" />
-				<img src="svelte-welcome.png" alt="Welcome" />
-			</picture>
-		</span>
-
-		to your new<br />SvelteKit app
+		SASEA Pipes
 	</h1>
 
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
+	<h3>
+		Process {status}
+	</h3>
+	<table>
+		<tr><th>Features processed</th><th>Total <em>ZIP code&ndash;date range</em> pairs</th></tr>
+		<tr><td>{result.processed.length}</td>
+			<td><a href="/total.txt" target="_blank">total.txt</a></td>
+		</tr>
+	</table>
+
+</section>
+<hr>
+<section>
+	<h3>
+		Inspect JSON:
+	</h3>
+	<ul>
+		<li>
+			<a href="/processed.json" target="_blank">Transformed feature attributes</a>
+		</li>
+		<li>
+			<a href="/sumzips.json" target="_blank">Total ZIP Code instances per date range, 2020-2023</a>
+		</li>
+
+	</ul>
+	<button on:click={debugData()}>Log data into console</button>
 
 </section>
 
@@ -130,7 +112,17 @@
 	h1 {
 		width: 100%;
 	}
+	li {
+		margin-bottom: 1em;
+	}
 
+	table {
+		background: white;
+		border: 1px solid gray;
+	}
+	td {
+		border: 1px solid gray;
+	}
 	.welcome {
 		display: block;
 		position: relative;

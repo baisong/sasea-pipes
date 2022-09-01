@@ -35,6 +35,7 @@ interface FormattedFeatureObject {
 }
 
 interface ChronoData {
+    total?: number;
     "1/5/2020-1/11/2020"?: number;
     "1/12/2020-1/18/2020"?: number;
     "1/19/2020-1/25/2020"?: number;
@@ -494,21 +495,21 @@ function fetchChronoData(filename: string): ChronoData {
     return chronoData;
 }
 
-function fetchChronoDataSync(filename: string): ChronoData {
+export function fetchChronoDataSync(filename: string): ChronoData {
     let chronoData: ChronoData = {};
     let data;
     //console.log({"1": filename});
     try {
         data = fs.readFileSync(filename);
     } catch (err) {
-        console.error("FetchSync: " + err);
+        //console.error("FetchSync: " + err);
     }
     //console.log({"2": data});
     if (data) {
         try {
             chronoData = JSON.parse(data);
         } catch (err) {
-            console.error("FetchSync: " + err);
+            //console.error("FetchSync: " + err);
         }
     }
     //console.log({"3": chronoData });
@@ -521,18 +522,18 @@ function writeChronoData(filename: string, data: string): void {
 	    if (err) {
             console.error(err);
         }
-	    console.log("Wrote to " + filename + ":\n" + data);
+	    //console.log("Wrote to " + filename + ":\n" + data);
 	});
 }
 
-function writeChronoDataSync(filename: string, data: string): void {
+function writeLocalDataSync(filename: string, data: string): void {
     try {
         fs.writeFileSync(filename, data);
     }
 	catch (err) {
         console.error(err);
     }
-	console.log("Wrote to " + filename + ":\n" + data);
+	//console.log("Wrote to " + filename + ":\n" + data);
 }
 
 function updateChronoData(f: FeatureObject): ChronoData {
@@ -564,7 +565,7 @@ function updateChronoData(f: FeatureObject): ChronoData {
     });
     const data = JSON.stringify(c, null, 4);
     //console.log({c, data});
-    writeChronoDataSync(filename, data);
+    writeLocalDataSync(filename, data);
 
     return counter;
 }
@@ -573,11 +574,14 @@ function combineChronoCounters(a: ChronoData, b: ChronoData): ChronoData {
     let c: ChronoData = {};
     let aTotal = 0;
     let bTotal = 0;
+    let sumTotal = 0;
     chronoKeys.forEach(key => {
         aTotal = (a[key]) || 0;
         bTotal = (b[key]) || 0;
         c[key] = aTotal + bTotal;
+        sumTotal += aTotal + bTotal;
     });
+    c.total = sumTotal;
 
     return c;
 }
@@ -589,7 +593,7 @@ export function processFeatures(feats: Array<FeatureObject>, max = 0): Array<For
         }
     }
     let sumZips: ChronoData = {};
-    let fmtArray: Array<FormattedFeatureObject> = [];
+    let processed: Array<FormattedFeatureObject> = [];
     for (var i = 0; i < feats.length; i++) {
         let feat = feats[i];
         let c = updateChronoData(feat);
@@ -599,12 +603,33 @@ export function processFeatures(feats: Array<FeatureObject>, max = 0): Array<For
             attributes: formatAttributes(feat.attributes),
         }
         if (typeof feat.geometry === "object") f.geometry = feat.geometry;
-        fmtArray.push(f);
+        processed.push(f);
     }
     let now = new Date().getTime().toString();
-    writeChronoDataSync(`static/sumzips-${now}.json`, JSON.stringify(sumZips, null, 4));
-    writeChronoDataSync(`static/sumzips.json`, JSON.stringify(sumZips, null, 4));
-    console.log(sumZips);
+    writeLocalDataSync(`static/sumzips-${now}.json`, JSON.stringify(sumZips, null, 4));
+    writeLocalDataSync(`static/sumzips.json`, JSON.stringify(sumZips, null, 4));
+    writeLocalDataSync(`static/total.txt`, JSON.stringify(sumZips.total, null, 4));
+    //console.log(sumZips);
+    //writeLocalDataSync(`static/processed-${now}.json`, JSON.stringify(sumZips, null, 4));
+    writeLocalDataSync(`static/processed.json`, JSON.stringify(processed, null, 4));
 
-    return fmtArray;
-} 
+    return {
+        total: sumZips.total,
+        processed: processed
+    };
+}
+
+export async function processSum(): Promise<ChronoData> {
+    let c = fetchChronoData("static/sumzips.json");
+    try {  
+        if (c.total) {
+            return c.total;
+        } else {
+            return -9999;
+        }
+    } catch (e) {
+        return -99999;
+    }finally {
+        return -999999;
+    }
+}
