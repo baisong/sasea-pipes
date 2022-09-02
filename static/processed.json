@@ -4391,6 +4391,16 @@
     },
     {
         "attributes": {
+            "zip_code": "91901",
+            "f7_day_average_case_rate": 12.70829693,
+            "previous_week_case_rate": 11.11975981,
+            "current_date_range": "8/14/2022-8/20/2022",
+            "previous_week_date_range": "8/7/2022-8/13/2022",
+            "testing_positivity_percentage": "9%"
+        }
+    },
+    {
+        "attributes": {
             "zip_code": "92114",
             "f7_day_average_case_rate": 19.44739848,
             "previous_week_case_rate": 27.32482571,
@@ -19987,16 +19997,6 @@
             "current_date_range": "6/5/2022-6/11/2022",
             "previous_week_date_range": "5/29/2022-6/4/2022",
             "testing_positivity_percentage": "15%"
-        }
-    },
-    {
-        "attributes": {
-            "zip_code": "92020",
-            "f7_day_average_case_rate": 31.6203709,
-            "previous_week_case_rate": 32.08198216,
-            "current_date_range": "6/5/2022-6/11/2022",
-            "previous_week_date_range": "5/29/2022-6/4/2022",
-            "testing_positivity_percentage": "9%"
         }
     }
 ]
